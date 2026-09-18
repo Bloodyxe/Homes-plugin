@@ -1,0 +1,44 @@
+name: Build plugin JAR
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build with Maven
+        run: mvn -B clean package --file pom.xml
+
+      - name: Upload JAR as build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: homes-plugin-jar
+          path: target/*.jar
+          if-no-files-found: error
+
+      # Only runs when you push a version tag, e.g.:
+      #   git tag v1.0.0 && git push origin v1.0.0
+      # It then attaches the built JAR to a GitHub Release automatically.
+      - name: Create GitHub Release with JAR attached
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

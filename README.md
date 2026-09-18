@@ -27,20 +27,46 @@ for anyone to view, enter, or delete another player's homes. Names are
 freely choosable (e.g. "Base"), the comparison ignores upper/lower case, but
 the spelling you chose is what gets displayed.
 
-## Requirements to build
+## Building the JAR on GitHub (no local Maven needed)
+
+This repo includes a GitHub Actions workflow (`.github/workflows/build.yml`)
+that builds the JAR for you automatically:
+
+1. Push this project to a GitHub repository (e.g. via GitHub Desktop, see
+   below).
+2. On GitHub, go to the **Actions** tab of your repository. A workflow run
+   called "Build plugin JAR" starts automatically on every push to `main`
+   (or click **Run workflow** to trigger it manually).
+3. Once it finishes (green checkmark), open that run and scroll down to
+   **Artifacts** → download **homes-plugin-jar**. That's a zip containing
+   the built `.jar` — drop the `.jar` into your Paper server's `plugins`
+   folder and (re)start the server.
+
+**Optional – automatic GitHub Release:** if you tag a commit with a version
+like `v1.0.0` and push the tag, the same workflow also creates a GitHub
+Release with the `.jar` already attached, so you (or anyone else) can grab
+it straight from the Releases page instead of digging through Actions runs:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+(In GitHub Desktop: **Repository → Create Tag...**, then push it via
+**Repository → Push**, or use the tag button in the History view.)
+
+## Building locally instead
+
+If you'd rather build it yourself on your own machine:
 
 - Java 17 (or newer)
 - Maven (with internet access to Maven Central and the PaperMC repository)
-
-## Building
 
 ```bash
 mvn clean package
 ```
 
 The finished file will be at `target/homes-plugin-1.0.0.jar`.
-Drop this JAR file into your Paper server's `plugins` folder and (re)start
-the server.
 
 ## Adjusting the version
 
