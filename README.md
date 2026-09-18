@@ -59,7 +59,8 @@ git push origin v1.0.0
 
 If you'd rather build it yourself on your own machine:
 
-- Java 17 (or newer)
+- Java 21 (Paper 1.21.x requires JDK 21 to build against, even if your
+  server itself later runs on a newer JDK)
 - Maven (with internet access to Maven Central and the PaperMC repository)
 
 ```bash
