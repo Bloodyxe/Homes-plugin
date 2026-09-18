@@ -16,6 +16,11 @@ commands:
     usage: /delhome <name>
     permission: homes.use
     permission-message: "&cYou don't have permission to do that."
+  home:
+    description: Teleports you directly to one of your homes by name.
+    usage: /home <name>
+    permission: homes.use
+    permission-message: "&cYou don't have permission to do that."
   homes:
     description: Shows a GUI with all your homes, teleports you to a named home, or reloads the config with "reload".
     usage: /homes [name|reload]
@@ -24,13 +29,13 @@ commands:
 
 permissions:
   homes.use:
-    description: Allows using /sethome, /delhome and /homes
+    description: Allows using /sethome, /delhome, /home and /homes
     default: true
   homes.admin:
     description: Allows "/homes reload" to reload config.yml (not usable for accessing other players' homes)
     default: op
-  homes.limit.vip:
+  homes.limit.wonder:
     description: >-
       Example permission for more homes (see config.yml, permission-limits).
-      Assign it to a rank via LuckPerms to raise that rank's home limit.
+      Assign it to the "wonder" rank via LuckPerms to give it a higher home limit.
     default: false

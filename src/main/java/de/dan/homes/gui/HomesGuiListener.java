@@ -45,21 +45,21 @@ public class HomesGuiListener implements Listener {
             return;
         }
 
-        int slot = event.getRawSlot();
         int maxHomes = limitService.getMaxHomes(clicker);
-        if (slot < 0 || slot >= maxHomes) {
-            return; // filler slot, or a click in the player's own inventory
+        int homeIndex = HomesGui.inventorySlotToHomeIndex(event.getRawSlot());
+        if (homeIndex == -1 || homeIndex >= maxHomes) {
+            return; // border/filler slot, or a click in the player's own inventory
         }
 
-        Home home = homeManager.getHomeAtSlot(clicker.getUniqueId(), slot);
+        Home home = homeManager.getHomeAtSlot(clicker.getUniqueId(), homeIndex);
         if (home != null) {
             clicker.closeInventory();
-            HomeDetailGui.open(plugin, clicker, slot, home.getName());
+            HomeDetailGui.open(plugin, clicker, homeIndex, home.getName());
             return;
         }
 
         clicker.closeInventory();
-        pendingHomeCreations.start(clicker.getUniqueId(), slot);
+        pendingHomeCreations.start(clicker.getUniqueId(), homeIndex);
         clicker.sendMessage(ChatColor.YELLOW + "Type the name for this home in chat (or type "
                 + ChatColor.RED + "cancel" + ChatColor.YELLOW + " to abort).");
     }

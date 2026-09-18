@@ -6,18 +6,23 @@ player's homes.
 
 ## Features
 
-- `/homes` – opens a GUI with one fixed box per home slot you're allowed to
-  have (see "Configuring home limits" below):
-  - **Empty slot:** shows "Click to sethome". Clicking it closes the GUI
-    and asks you to type a name in chat; whatever you type becomes the new
-    home, set at your current location.
-  - **Occupied slot:** shows the home's name. Clicking it opens a small
-    menu with **"TP to home"** and **"Delete home"**.
+- `/homes` – opens a 4-row GUI. Home boxes sit in a checkerboard pattern
+  starting on the second row (one box per home slot you're allowed to have,
+  see "Configuring home limits" below):
+  - **Empty slot:** a green dye labeled "Click to sethome". Clicking it
+    closes the GUI and asks you to type a name in chat; whatever you type
+    becomes the new home, set at your current location.
+  - **Occupied slot:** a **red bed** labeled with the home's name. Clicking
+    it opens a small menu with **"TP to home"** and **"Delete home"**.
+  - No coordinates are shown anywhere, neither in the GUI nor in chat
+    messages – only the home's name.
+- `/home <name>` – teleports you directly to that home, no GUI needed
+  (tab-completion included)
 - `/sethome <name>` – alternative way to set a home directly from the
   command line (uses your first free slot, or updates the slot if a home
   with that name already exists)
 - `/delhome <name>` – deletes a home by name
-- `/homes <name>` – teleports you directly to that home (tab-completion included)
+- `/homes <name>` – same as `/home <name>`, teleports you directly to that home
 - `/homes reload` – reloads `config.yml` without restarting the server (permission `homes.admin`, default: OP only)
 
 Homes are stored per player in their own file
@@ -89,34 +94,35 @@ The number of boxes shown in the `/homes` GUI (and the limit for
 `/sethome`) is controlled in `plugins/HomesPlugin/config.yml`:
 
 ```yaml
-default-homes: 3
+default-homes: 4
 
 permission-limits:
-  homes.limit.vip: 5
+  homes.limit.wonder: 7
 ```
 
 - `default-homes` is the limit for every player without a special
-  permission (in the example: **3 homes** for a regular player, so `/homes`
-  shows exactly 3 boxes for them).
+  permission (in the example: **4 homes** for a regular player, so `/homes`
+  shows exactly 4 boxes for them).
 - Under `permission-limits` you can list as many of your own permission
   nodes as you like, each with its own limit. The player's limit is always
   the **highest** value they have a matching permission for (values are not
   added together).
 
-For a "real-money rank = 5 homes" setup:
+For a "wonder rank = 7 homes, normal players = 4 homes" setup (already the
+default in `config.yml`):
 
-1. `config.yml` already has `homes.limit.vip: 5`.
-2. In LuckPerms, grant that permission to the relevant rank, e.g.:
+1. `config.yml` already has `default-homes: 4` and `homes.limit.wonder: 7`.
+2. In LuckPerms, grant that permission to the `wonder` rank:
    ```
-   /lp group vip permission set homes.limit.vip true
+   /lp group wonder permission set homes.limit.wonder true
    ```
-   (replace `vip` with your actual group/rank name.)
+   (replace `wonder` if your group is actually named differently.)
 
 Add more ranks the same way, e.g. for an even higher tier:
 
 ```yaml
 permission-limits:
-  homes.limit.vip: 5
+  homes.limit.wonder: 7
   homes.limit.premium: 10
 ```
 
@@ -127,7 +133,7 @@ enough – no server restart needed.
 
 ## Permissions
 
-- `homes.use` (default: **every player**) – allows `/sethome`, `/delhome`, `/homes`
+- `homes.use` (default: **every player**) – allows `/sethome`, `/delhome`, `/home`, `/homes`
 - `homes.admin` (default: OP only) – allows `/homes reload`
 - `homes.limit.<name>` (default: `false`, freely extensible) – see above,
   only controls the number of allowed homes, never access to other players' homes

@@ -1,6 +1,7 @@
 package de.dan.homes;
 
 import de.dan.homes.commands.DelHomeCommand;
+import de.dan.homes.commands.HomeCommand;
 import de.dan.homes.commands.HomesCommand;
 import de.dan.homes.commands.SetHomeCommand;
 import de.dan.homes.config.HomeLimitService;
@@ -25,6 +26,10 @@ public final class HomesPlugin extends JavaPlugin {
 
         getCommand("sethome").setExecutor(new SetHomeCommand(homeManager, limitService));
         getCommand("delhome").setExecutor(new DelHomeCommand(homeManager));
+
+        HomeCommand homeCommand = new HomeCommand(homeManager);
+        getCommand("home").setExecutor(homeCommand);
+        getCommand("home").setTabCompleter(homeCommand);
 
         HomesCommand homesCommand = new HomesCommand(this, homeManager, limitService);
         getCommand("homes").setExecutor(homesCommand);
