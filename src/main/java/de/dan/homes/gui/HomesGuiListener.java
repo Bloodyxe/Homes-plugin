@@ -4,6 +4,7 @@ import de.dan.homes.HomesPlugin;
 import de.dan.homes.config.HomeLimitService;
 import de.dan.homes.storage.Home;
 import de.dan.homes.storage.HomeManager;
+import de.dan.homes.teleport.HomeTeleportChannel;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,13 +17,15 @@ public class HomesGuiListener implements Listener {
     private final HomeManager homeManager;
     private final HomeLimitService limitService;
     private final PendingHomeCreations pendingHomeCreations;
+    private final HomeTeleportChannel teleportChannel;
 
     public HomesGuiListener(HomesPlugin plugin, HomeManager homeManager, HomeLimitService limitService,
-                             PendingHomeCreations pendingHomeCreations) {
+                             PendingHomeCreations pendingHomeCreations, HomeTeleportChannel teleportChannel) {
         this.plugin = plugin;
         this.homeManager = homeManager;
         this.limitService = limitService;
         this.pendingHomeCreations = pendingHomeCreations;
+        this.teleportChannel = teleportChannel;
     }
 
     @EventHandler
@@ -31,6 +34,8 @@ public class HomesGuiListener implements Listener {
             handleMainClick(event, holder);
         } else if (event.getInventory().getHolder() instanceof HomeDetailGuiHolder holder) {
             handleDetailClick(event, holder);
+        } else if (event.getInventory().getHolder() instanceof HomeDeleteConfirmGuiHolder holder) {
+            handleDeleteConfirmClick(event, holder);
         }
     }
 
@@ -48,7 +53,7 @@ public class HomesGuiListener implements Listener {
         int maxHomes = limitService.getMaxHomes(clicker);
         int homeIndex = HomesGui.inventorySlotToHomeIndex(event.getRawSlot());
         if (homeIndex == -1 || homeIndex >= maxHomes) {
-            return; // border/filler slot, or a click in the player's own inventory
+            return; // border/filler/locked slot, or a click in the player's own inventory
         }
 
         Home home = homeManager.getHomeAtSlot(clicker.getUniqueId(), homeIndex);
@@ -82,24 +87,57 @@ public class HomesGuiListener implements Listener {
                 return;
             }
             clicker.closeInventory();
-            clicker.teleportAsync(home.getLocation());
-            clicker.sendMessage(ChatColor.GREEN + "You have been teleported to " + ChatColor.YELLOW
-                    + home.getName() + ChatColor.GREEN + ".");
+            if (!teleportChannel.start(plugin, clicker, home.getName(), home.getLocation())) {
+                clicker.sendMessage(ChatColor.RED + "You are already teleporting. Please wait.");
+            }
             return;
         }
 
         if (slot == HomeDetailGui.SLOT_DELETE) {
             Home home = homeManager.getHomeAtSlot(clicker.getUniqueId(), homeSlot);
-            String name = home != null ? home.getName() : "?";
-            homeManager.deleteHomeAtSlot(clicker.getUniqueId(), homeSlot);
-            clicker.sendMessage(ChatColor.GREEN + "Home " + ChatColor.YELLOW + name
-                    + ChatColor.GREEN + " has been deleted.");
-            HomesGui.open(plugin, homeManager, clicker, limitService.getMaxHomes(clicker));
+            if (home == null) {
+                clicker.sendMessage(ChatColor.RED + "This home no longer exists.");
+                clicker.closeInventory();
+                return;
+            }
+            clicker.closeInventory();
+            HomeDeleteConfirmGui.open(plugin, clicker, homeSlot, home.getName());
             return;
         }
 
         if (slot == HomeDetailGui.SLOT_BACK) {
-            HomesGui.open(plugin, homeManager, clicker, limitService.getMaxHomes(clicker));
+            HomesGui.open(plugin, homeManager, limitService, clicker);
+        }
+    }
+
+    private void handleDeleteConfirmClick(InventoryClickEvent event, HomeDeleteConfirmGuiHolder holder) {
+        event.setCancelled(true);
+
+        if (!(event.getWhoClicked() instanceof Player clicker) || !clicker.getUniqueId().equals(holder.getOwner())) {
+            return;
+        }
+
+        int slot = event.getRawSlot();
+        int homeSlot = holder.getSlot();
+
+        if (slot == HomeDeleteConfirmGui.SLOT_CONFIRM) {
+            boolean removed = homeManager.deleteHomeAtSlot(clicker.getUniqueId(), homeSlot);
+            clicker.sendMessage(removed
+                    ? ChatColor.GREEN + "Home " + ChatColor.YELLOW + holder.getHomeName()
+                        + ChatColor.GREEN + " has been deleted."
+                    : ChatColor.RED + "This home no longer exists.");
+            HomesGui.open(plugin, homeManager, limitService, clicker);
+            return;
+        }
+
+        if (slot == HomeDeleteConfirmGui.SLOT_CANCEL) {
+            Home home = homeManager.getHomeAtSlot(clicker.getUniqueId(), homeSlot);
+            if (home == null) {
+                clicker.sendMessage(ChatColor.RED + "This home no longer exists.");
+                HomesGui.open(plugin, homeManager, limitService, clicker);
+                return;
+            }
+            HomeDetailGui.open(plugin, clicker, homeSlot, home.getName());
         }
     }
 }

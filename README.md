@@ -6,24 +6,39 @@ player's homes.
 
 ## Features
 
-- `/homes` – opens a 4-row GUI. Home boxes sit in a checkerboard pattern
-  starting on the second row (one box per home slot you're allowed to have,
-  see "Configuring home limits" below):
+- `/homes` – opens a 4-row GUI. Home boxes sit in a brick/checkerboard
+  pattern across rows 2 and 3, each row offset by one column from the row
+  above (one box per home slot you're allowed to have, see "Configuring
+  home limits" below):
   - **Empty slot:** a green dye labeled "Click to sethome". Clicking it
     closes the GUI and asks you to type a name in chat; whatever you type
     becomes the new home, set at your current location.
   - **Occupied slot:** a **red bed** labeled with the home's name. Clicking
     it opens a small menu with **"TP to home"** and **"Delete home"**.
+    Clicking "Delete home" doesn't delete right away - it opens a confirm
+    screen ("Yes, delete it" / "No, keep it") first, so a misclick can't
+    wipe out a home.
+  - **Locked slot:** an iron-bars box labeled "Locked", shown for home
+    slots that exist because of a higher rank you don't have (see
+    "Configuring home limits" below) - a visible hint that upgrading gets
+    you more homes.
   - No coordinates are shown anywhere, neither in the GUI nor in chat
     messages – only the home's name.
-- `/home <name>` – teleports you directly to that home, no GUI needed
-  (tab-completion included)
+- `/home <name>` – teleports you to that home, no GUI needed (tab-completion included)
 - `/sethome <name>` – alternative way to set a home directly from the
   command line (uses your first free slot, or updates the slot if a home
   with that name already exists)
-- `/delhome <name>` – deletes a home by name
-- `/homes <name>` – same as `/home <name>`, teleports you directly to that home
+- `/delhome <name>` – deletes a home by name immediately (no confirm screen -
+  that's only in the GUI's delete button)
+- `/homes <name>` – same as `/home <name>`, teleports you to that home
 - `/homes reload` – reloads `config.yml` without restarting the server (permission `homes.admin`, default: OP only)
+
+**Teleport delay:** every home teleport (`/home`, `/homes <name>`, and the
+GUI's "TP to home" button) has a 5-second channel before it actually warps
+you - if you move at all during those 5 seconds, the teleport is cancelled
+and you have to start over. This applies uniformly everywhere a home
+teleport can be triggered, so it can't be skipped by using a different
+command.
 
 Homes are stored per player in their own file
 (`plugins/HomesPlugin/homes/<UUID>.yml`). Every command and every GUI click
@@ -101,12 +116,16 @@ permission-limits:
 ```
 
 - `default-homes` is the limit for every player without a special
-  permission (in the example: **4 homes** for a regular player, so `/homes`
-  shows exactly 4 boxes for them).
+  permission (in the example: **4 homes** for a regular player).
 - Under `permission-limits` you can list as many of your own permission
   nodes as you like, each with its own limit. The player's limit is always
   the **highest** value they have a matching permission for (values are not
   added together).
+- The GUI always shows boxes for the *highest* limit configured anywhere
+  (in the example, 7 - `wonder`'s limit). A regular player still only sees
+  their own 4 usable boxes; the remaining 3 show up as **locked** boxes,
+  visibly hinting that the `wonder` rank unlocks them. As soon as a player
+  is granted `homes.limit.wonder`, those same boxes become usable for them.
 
 For a "wonder rank = 7 homes, normal players = 4 homes" setup (already the
 default in `config.yml`):

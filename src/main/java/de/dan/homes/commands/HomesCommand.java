@@ -5,6 +5,7 @@ import de.dan.homes.config.HomeLimitService;
 import de.dan.homes.gui.HomesGui;
 import de.dan.homes.storage.Home;
 import de.dan.homes.storage.HomeManager;
+import de.dan.homes.teleport.HomeTeleportChannel;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -17,7 +18,7 @@ import java.util.List;
 
 /**
  * /homes           -> opens the click-GUI with one box per home slot
- * /homes <name>    -> teleports you directly to the given home
+ * /homes <name>    -> teleports you to the given home after a 5s channel
  * /homes reload    -> reloads config.yml (requires permission homes.admin)
  */
 public class HomesCommand implements CommandExecutor, TabCompleter {
@@ -25,11 +26,14 @@ public class HomesCommand implements CommandExecutor, TabCompleter {
     private final HomesPlugin plugin;
     private final HomeManager homeManager;
     private final HomeLimitService limitService;
+    private final HomeTeleportChannel teleportChannel;
 
-    public HomesCommand(HomesPlugin plugin, HomeManager homeManager, HomeLimitService limitService) {
+    public HomesCommand(HomesPlugin plugin, HomeManager homeManager, HomeLimitService limitService,
+                         HomeTeleportChannel teleportChannel) {
         this.plugin = plugin;
         this.homeManager = homeManager;
         this.limitService = limitService;
+        this.teleportChannel = teleportChannel;
     }
 
     @Override
@@ -46,7 +50,7 @@ public class HomesCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 0) {
-            HomesGui.open(plugin, homeManager, player, limitService.getMaxHomes(player));
+            HomesGui.open(plugin, homeManager, limitService, player);
             return true;
         }
 
@@ -59,9 +63,9 @@ public class HomesCommand implements CommandExecutor, TabCompleter {
                         + ChatColor.RED + ".");
                 return true;
             }
-            player.teleportAsync(home.getLocation());
-            player.sendMessage(ChatColor.GREEN + "You have been teleported to " + ChatColor.YELLOW + home.getName()
-                    + ChatColor.GREEN + ".");
+            if (!teleportChannel.start(plugin, player, home.getName(), home.getLocation())) {
+                player.sendMessage(ChatColor.RED + "You are already teleporting. Please wait.");
+            }
             return true;
         }
 

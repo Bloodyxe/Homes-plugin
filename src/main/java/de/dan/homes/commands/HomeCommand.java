@@ -1,7 +1,9 @@
 package de.dan.homes.commands;
 
+import de.dan.homes.HomesPlugin;
 import de.dan.homes.storage.Home;
 import de.dan.homes.storage.HomeManager;
+import de.dan.homes.teleport.HomeTeleportChannel;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -14,14 +16,21 @@ import java.util.List;
 
 /**
  * /home <name> - direct shortcut to teleport to one of your homes, without
- * going through the /homes GUI.
+ * going through the /homes GUI. Teleports after a 5 second channel during
+ * which you must not move (see HomeTeleportChannel), same as /homes <name>
+ * and the "TP to home" GUI button - so the delay can't be sidestepped by
+ * using a different command.
  */
 public class HomeCommand implements CommandExecutor, TabCompleter {
 
+    private final HomesPlugin plugin;
     private final HomeManager homeManager;
+    private final HomeTeleportChannel teleportChannel;
 
-    public HomeCommand(HomeManager homeManager) {
+    public HomeCommand(HomesPlugin plugin, HomeManager homeManager, HomeTeleportChannel teleportChannel) {
+        this.plugin = plugin;
         this.homeManager = homeManager;
+        this.teleportChannel = teleportChannel;
     }
 
     @Override
@@ -45,9 +54,9 @@ public class HomeCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        player.teleportAsync(home.getLocation());
-        player.sendMessage(ChatColor.GREEN + "You have been teleported to " + ChatColor.YELLOW + home.getName()
-                + ChatColor.GREEN + ".");
+        if (!teleportChannel.start(plugin, player, home.getName(), home.getLocation())) {
+            player.sendMessage(ChatColor.RED + "You are already teleporting. Please wait.");
+        }
         return true;
     }
 

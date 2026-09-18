@@ -41,4 +41,27 @@ public class HomeLimitService {
         }
         return max;
     }
+
+    /**
+     * The highest home limit anyone on the server could possibly have
+     * (highest of "default-homes" and every value under
+     * "permission-limits"), regardless of what a specific player has. Used
+     * purely for rendering: the GUI shows this many boxes in total, with
+     * the ones beyond a given player's own limit shown as locked.
+     */
+    public int getHighestConfiguredLimit() {
+        FileConfiguration config = plugin.getConfig();
+        int max = Math.max(0, config.getInt("default-homes", 3));
+
+        ConfigurationSection section = config.getConfigurationSection("permission-limits");
+        if (section != null) {
+            for (String permission : section.getKeys(false)) {
+                int value = section.getInt(permission, 0);
+                if (value > max) {
+                    max = value;
+                }
+            }
+        }
+        return max;
+    }
 }
