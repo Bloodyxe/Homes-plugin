@@ -1,0 +1,110 @@
+# HomesPlugin
+
+A custom Paper plugin for personal homes with a full click-GUI – every
+player manages only their own homes, and nobody can access another
+player's homes.
+
+## Features
+
+- `/homes` – opens a GUI with one fixed box per home slot you're allowed to
+  have (see "Configuring home limits" below):
+  - **Empty slot:** shows "Click to sethome". Clicking it closes the GUI
+    and asks you to type a name in chat; whatever you type becomes the new
+    home, set at your current location.
+  - **Occupied slot:** shows the home's name. Clicking it opens a small
+    menu with **"TP to home"** and **"Delete home"**.
+- `/sethome <name>` – alternative way to set a home directly from the
+  command line (uses your first free slot, or updates the slot if a home
+  with that name already exists)
+- `/delhome <name>` – deletes a home by name
+- `/homes <name>` – teleports you directly to that home (tab-completion included)
+- `/homes reload` – reloads `config.yml` without restarting the server (permission `homes.admin`, default: OP only)
+
+Homes are stored per player in their own file
+(`plugins/HomesPlugin/homes/<UUID>.yml`). Every command and every GUI click
+work exclusively with the UUID of the executing player – there is no way
+for anyone to view, enter, or delete another player's homes. Names are
+freely choosable (e.g. "Base"), the comparison ignores upper/lower case, but
+the spelling you chose is what gets displayed.
+
+## Requirements to build
+
+- Java 17 (or newer)
+- Maven (with internet access to Maven Central and the PaperMC repository)
+
+## Building
+
+```bash
+mvn clean package
+```
+
+The finished file will be at `target/homes-plugin-1.0.0.jar`.
+Drop this JAR file into your Paper server's `plugins` folder and (re)start
+the server.
+
+## Adjusting the version
+
+The project currently targets Paper API `1.21.1-R0.1-SNAPSHOT`
+(compatible with Minecraft 1.21.x). If you're running a different
+Minecraft version, open `pom.xml` and change the `<paper.version>` value to
+whatever's available at https://papermc.io/downloads, e.g.:
+
+```xml
+<paper.version>1.20.4-R0.1-SNAPSHOT</paper.version>
+```
+
+Then adjust `api-version` in `plugin.yml` accordingly (e.g. `'1.20'`). The
+code itself doesn't need to change for this.
+
+## Configuring home limits (e.g. with LuckPerms)
+
+The number of boxes shown in the `/homes` GUI (and the limit for
+`/sethome`) is controlled in `plugins/HomesPlugin/config.yml`:
+
+```yaml
+default-homes: 3
+
+permission-limits:
+  homes.limit.vip: 5
+```
+
+- `default-homes` is the limit for every player without a special
+  permission (in the example: **3 homes** for a regular player, so `/homes`
+  shows exactly 3 boxes for them).
+- Under `permission-limits` you can list as many of your own permission
+  nodes as you like, each with its own limit. The player's limit is always
+  the **highest** value they have a matching permission for (values are not
+  added together).
+
+For a "real-money rank = 5 homes" setup:
+
+1. `config.yml` already has `homes.limit.vip: 5`.
+2. In LuckPerms, grant that permission to the relevant rank, e.g.:
+   ```
+   /lp group vip permission set homes.limit.vip true
+   ```
+   (replace `vip` with your actual group/rank name.)
+
+Add more ranks the same way, e.g. for an even higher tier:
+
+```yaml
+permission-limits:
+  homes.limit.vip: 5
+  homes.limit.premium: 10
+```
+
+and in LuckPerms: `/lp group premium permission set homes.limit.premium true`.
+
+After changing `config.yml`, `/homes reload` (permission `homes.admin`) is
+enough – no server restart needed.
+
+## Permissions
+
+- `homes.use` (default: **every player**) – allows `/sethome`, `/delhome`, `/homes`
+- `homes.admin` (default: OP only) – allows `/homes reload`
+- `homes.limit.<name>` (default: `false`, freely extensible) – see above,
+  only controls the number of allowed homes, never access to other players' homes
+
+If you want to restrict access altogether, set `homes.use` to
+`default: false` in your permissions manager (e.g. LuckPerms) and grant it
+selectively.

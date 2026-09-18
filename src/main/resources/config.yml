@@ -1,0 +1,21 @@
+# Number of homes a player may set if none of the permissions below apply
+# (the "normal" default rank).
+default-homes: 3
+
+# Additional home limits via permissions (e.g. granted with LuckPerms).
+# Format:  <permission-node>: <number of homes>
+# The HIGHEST value the player has a permission for always wins (not
+# additive!). "default-homes" is effectively the limit for everyone who
+# doesn't have any of these permissions.
+#
+# Example setup with LuckPerms for a "real-money" rank with 5 homes:
+#   /lp group vip permission set homes.limit.vip true
+#
+# You can add as many of your own ranks/permissions as you like without
+# rebuilding the plugin - just add a line here and grant the permission to
+# the desired group in LuckPerms. After changing this file, /homes reload
+# (permission: homes.admin) is enough - no server restart needed.
+permission-limits:
+  homes.limit.vip: 5
+  # homes.limit.premium: 10
+  # homes.limit.unlimited: 999
