@@ -58,7 +58,10 @@ public class HomesGuiListener implements Listener {
 
         Home home = homeManager.getHomeAtSlot(clicker.getUniqueId(), homeIndex);
         if (home != null) {
-            clicker.closeInventory();
+            // Switch directly to the detail GUI without closing first, so
+            // the client doesn't flash back to the game world in between -
+            // that flash is what resets the mouse cursor to the middle of
+            // the screen.
             HomeDetailGui.open(plugin, clicker, homeIndex, home.getName());
             return;
         }
@@ -100,7 +103,8 @@ public class HomesGuiListener implements Listener {
                 clicker.closeInventory();
                 return;
             }
-            clicker.closeInventory();
+            // Same as above: switch straight to the confirm GUI, no close in
+            // between, so the cursor doesn't jump.
             HomeDeleteConfirmGui.open(plugin, clicker, homeSlot, home.getName());
             return;
         }
