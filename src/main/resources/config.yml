@@ -3,19 +3,29 @@
 default-homes: 4
 
 # Additional home limits via permissions (e.g. granted with LuckPerms).
-# Format:  <permission-node>: <number of homes>
-# The HIGHEST value the player has a permission for always wins (not
-# additive!). "default-homes" is effectively the limit for everyone who
-# doesn't have any of these permissions.
+# IMPORTANT: this must be a LIST of "- permission: ... / limit: ..." entries
+# exactly like the example below - NOT "homes.limit.wonder: 7" as a plain
+# key. Bukkit's config format treats "." inside a YAML KEY as a path
+# separator and silently breaks it apart into nested sections, so a
+# permission node used as a key would never work correctly. Using it as a
+# VALUE (like here) avoids that problem entirely.
+#
+# The HIGHEST "limit" the player has a matching permission for always wins
+# (not additive!). "default-homes" is effectively the limit for everyone
+# who doesn't have any of the permissions listed here.
 #
 # Example setup with LuckPerms for a "wonder" rank with 7 homes:
 #   /lp group wonder permission set homes.limit.wonder true
 #
 # You can add as many of your own ranks/permissions as you like without
-# rebuilding the plugin - just add a line here and grant the permission to
-# the desired group in LuckPerms. After changing this file, /homes reload
-# (permission: homes.admin) is enough - no server restart needed.
+# rebuilding the plugin - just add another "- permission: ... / limit: ..."
+# entry here and grant that permission to the desired group in LuckPerms.
+# After changing this file, /homes reload (permission: homes.admin) is
+# enough - no server restart needed.
 permission-limits:
-  homes.limit.wonder: 7
-  # homes.limit.premium: 10
-  # homes.limit.unlimited: 999
+  - permission: homes.limit.wonder
+    limit: 7
+  # - permission: homes.limit.premium
+  #   limit: 10
+  # - permission: homes.limit.unlimited
+  #   limit: 999

@@ -112,14 +112,24 @@ The number of boxes shown in the `/homes` GUI (and the limit for
 default-homes: 4
 
 permission-limits:
-  homes.limit.wonder: 7
+  - permission: homes.limit.wonder
+    limit: 7
 ```
+
+**Important:** `permission-limits` must be a **list** of `- permission: ... / limit: ...`
+entries exactly like this, not `homes.limit.wonder: 7` as a plain key. Bukkit's
+config format treats a "." inside a YAML *key* as a path separator and
+silently splits it into nested sections, so a permission node used as a key
+(like `homes.limit.wonder: 7`) is never read back correctly - it would
+silently do nothing, even though the file "looks" right and LuckPerms has
+the permission set correctly. Using it as a *value* (as above) avoids that
+problem entirely.
 
 - `default-homes` is the limit for every player without a special
   permission (in the example: **4 homes** for a regular player).
-- Under `permission-limits` you can list as many of your own permission
-  nodes as you like, each with its own limit. The player's limit is always
-  the **highest** value they have a matching permission for (values are not
+- Under `permission-limits` you can list as many entries as you like, each
+  with its own `permission` and `limit`. The player's limit is always the
+  **highest** `limit` they have a matching permission for (values are not
   added together).
 - The GUI always shows boxes for the *highest* limit configured anywhere
   (in the example, 7 - `wonder`'s limit). A regular player still only sees
@@ -130,7 +140,8 @@ permission-limits:
 For a "wonder rank = 7 homes, normal players = 4 homes" setup (already the
 default in `config.yml`):
 
-1. `config.yml` already has `default-homes: 4` and `homes.limit.wonder: 7`.
+1. `config.yml` already has `default-homes: 4` and the `homes.limit.wonder`
+   entry with `limit: 7`.
 2. In LuckPerms, grant that permission to the `wonder` rank:
    ```
    /lp group wonder permission set homes.limit.wonder true
@@ -141,8 +152,10 @@ Add more ranks the same way, e.g. for an even higher tier:
 
 ```yaml
 permission-limits:
-  homes.limit.wonder: 7
-  homes.limit.premium: 10
+  - permission: homes.limit.wonder
+    limit: 7
+  - permission: homes.limit.premium
+    limit: 10
 ```
 
 and in LuckPerms: `/lp group premium permission set homes.limit.premium true`.
