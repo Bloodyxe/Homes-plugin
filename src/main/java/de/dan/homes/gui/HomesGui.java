@@ -32,13 +32,14 @@ public final class HomesGui {
     public static final int ROWS = 4;
     public static final int SIZE = ROWS * 9;
 
-    // One pattern of columns (0-8) per home row, each offset from the
-    // previous one by a single column - that's the brick/checkerboard look.
-    // Row 1 (index 0 here) starts one column further right than before.
+    // One pattern of columns (0-8) per home row. Row 2 has one fewer box
+    // than row 1 and is centered directly underneath it (columns 2/4/6 sit
+    // right between 1/3/5/7 above) - a clean diamond/brick shape for the
+    // default 4 + 3 = 7 layout, instead of a lopsided gap on one side.
     private static final int[][] ROW_PATTERNS = {
-            {2, 4, 6, 8},
             {1, 3, 5, 7},
-            {2, 4, 6, 8},
+            {2, 4, 6},
+            {1, 3, 5, 7},
     };
 
     // The top row (row 0) is a plain border; home boxes start on the
@@ -54,17 +55,19 @@ public final class HomesGui {
      * Returns -1 if the index doesn't fit in the available rows.
      */
     public static int homeIndexToInventorySlot(int homeIndex) {
-        int perRow = 4;
-        int rowOffset = homeIndex / perRow;
-        if (rowOffset >= ROW_PATTERNS.length) {
-            return -1;
+        int remaining = homeIndex;
+        for (int rowOffset = 0; rowOffset < ROW_PATTERNS.length; rowOffset++) {
+            int[] pattern = ROW_PATTERNS[rowOffset];
+            if (remaining < pattern.length) {
+                int row = FIRST_HOME_ROW + rowOffset;
+                if (row >= ROWS) {
+                    return -1;
+                }
+                return row * 9 + pattern[remaining];
+            }
+            remaining -= pattern.length;
         }
-        int row = FIRST_HOME_ROW + rowOffset;
-        if (row >= ROWS) {
-            return -1;
-        }
-        int column = ROW_PATTERNS[rowOffset][homeIndex % perRow];
-        return row * 9 + column;
+        return -1;
     }
 
     /**
@@ -83,12 +86,22 @@ public final class HomesGui {
             return -1;
         }
         int[] pattern = ROW_PATTERNS[rowOffset];
+        int columnIndex = -1;
         for (int i = 0; i < pattern.length; i++) {
             if (pattern[i] == column) {
-                return rowOffset * pattern.length + i;
+                columnIndex = i;
+                break;
             }
         }
-        return -1;
+        if (columnIndex == -1) {
+            return -1;
+        }
+
+        int homeIndex = columnIndex;
+        for (int i = 0; i < rowOffset; i++) {
+            homeIndex += ROW_PATTERNS[i].length;
+        }
+        return homeIndex;
     }
 
     public static void open(HomesPlugin plugin, HomeManager homeManager, HomeLimitService limitService,
